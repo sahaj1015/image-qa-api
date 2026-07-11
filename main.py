@@ -20,7 +20,7 @@ app.add_middleware(
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_API_KEY)
 
-model = genai.GenerativeModel("gemini-2.0-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 
 # ---- Request format ----
@@ -67,6 +67,11 @@ def answer_image(req: ImageQuestion):
         answer_text = answer_text.strip("`").strip()
         if answer_text.lower().startswith("answer:"):
             answer_text = answer_text[len("answer:"):].strip()
+
+        # Strip common currency symbols, thousands separators, and stray quotes
+        for junk in ["$", "€", "£", "₹", ",", '"', "'"]:
+            answer_text = answer_text.replace(junk, "")
+        answer_text = answer_text.strip()
 
         return {"answer": answer_text}
 

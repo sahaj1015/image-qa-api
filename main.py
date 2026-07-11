@@ -20,7 +20,7 @@ app.add_middleware(
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_API_KEY)
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-3.5-flash")
 
 
 # ---- Request format ----
@@ -54,12 +54,22 @@ def answer_image(req: ImageQuestion):
             "Do not include currency symbols, units, explanations, or extra words."
         )
 
-        response = model.generate_content(
-            [
-                {"mime_type": "image/png", "data": img_bytes},
-                prompt,
-            ]
-        )
+        try:
+            response = model.generate_content(
+                [
+                    {"mime_type": "image/png", "data": img_bytes},
+                    prompt,
+                ]
+            )
+        except Exception:
+            # Fallback model in case the primary one is deprecated/unavailable
+            backup_model = genai.GenerativeModel("gemini-3.1-flash-lite")
+            response = backup_model.generate_content(
+                [
+                    {"mime_type": "image/png", "data": img_bytes},
+                    prompt,
+                ]
+            )
 
         answer_text = response.text.strip()
 
